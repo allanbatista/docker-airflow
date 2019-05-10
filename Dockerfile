@@ -9,6 +9,7 @@ SHELL ["/bin/bash", "-c"]
 # no interaction
 ENV DEBIAN_FRONTEND noninteractive
 ENV TERM linux
+ENV SLUGIFY_USES_TEXT_UNIDECODE=yes
 
 # airflow
 ENV AIRFLOW=/opt/airflow
@@ -17,8 +18,9 @@ ENV AIRFLOW__CORE__DAGS_FOLDER=$AIRFLOW/dags
 ENV AIRFLOW__CORE__PLUGINS_FOLDER=$AIRFLOW/plugins
 ENV AIRFLOW__CORE__BASE_LOG_FOLDER=$AIRFLOW/logs
 ENV AIRFLOW_KEYS=$AIRFLOW/keys
-ENV AIRFLOW_VERSION=1.10.3
+ENV AIRFLOW_VERSION=1.10.1
 ENV AIRFLOW_GPL_UNIDECODE=yes
+ENV C_FORCE_ROOT=TRUE
 
 # language
 ENV LANGUAGE en_US.UTF-8
@@ -33,6 +35,9 @@ ENV PYTHON_PACKAGES=
 # google cloud sdk
 ENV PATH=$PATH:/usr/local/gcloud/google-cloud-sdk/bin
 ENV CLOUDSDK_PYTHON="python2.7"
+ENV GOOGLE_APPLICATION_CREDENTIALS_JSON=
+ENV GOOGLE_APPLICATION_ACCOUNT=
+ENV CLOUD_SDK_REPO=cloud-sdk-bionic
 
 # base
 RUN mkdir -p $AIRFLOW_HOME && \
@@ -41,55 +46,53 @@ RUN mkdir -p $AIRFLOW_HOME && \
     mkdir -p $AIRFLOW__CORE__BASE_LOG_FOLDER && \
     mkdir -p AIRFLOW__CORE__PLUGINS_FOLDER    
 ADD airflow/home /opt/airflow/home
-COPY entrypoint.sh /entrypoint.sh
 WORKDIR /opt/airflow
 
-RUN apt-get update && \
-    apt-get install -y \
-    freetds-bin \
-    build-essential \
-    apt-utils \
-    curl \
-    rsync \
-    netcat \
-    locales \
-    default-libmysqlclient-dev \
-    freetds-dev \
-    libkrb5-dev \
-    libsasl2-dev \
-    libssl-dev \
-    libffi-dev \
-    libpq-dev \
-    git \
-    python python-pip python-dev \
-    python3 python3-pip python3-dev && \
-    echo "alias python=python3" >> ~/.bashrc && \
-    echo "alias pip=pip3" >> ~/.bashrc && \
-    source ~/.bashrc && \
-    apt-get clean
+RUN apt-get update -y \
+    && apt-get install -y \
+                        python-minimal \
+                        python3-pip \
+                        python3-dev \
+                        python3-setuptools \
+                        zip \
+                        wget \
+                        git \
+                        vim \
+                        locales \
+                        build-essential \
+                        curl \
+                        default-libmysqlclient-dev \
+                        freetds-dev \
+                        libkrb5-dev \
+                        libsasl2-dev \
+                        libssl-dev \
+                        libffi-dev \
+                        libpq-dev \
+    && sed -i -e 's/# en_US.UTF-8 UTF-8/en_US.UTF-8 UTF-8/' /etc/locale.gen && locale-gen \
+    && apt-get clean
 
-RUN sed -i -e 's/# en_US.UTF-8 UTF-8/en_US.UTF-8 UTF-8/' /etc/locale.gen && locale-gen
+RUN echo "deb http://packages.cloud.google.com/apt $CLOUD_SDK_REPO main" | tee -a /etc/apt/sources.list.d/google-cloud-sdk.list && \
+    curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key add - && \
+    apt-get update -y && \
+    apt-get install google-cloud-sdk -y
 
-RUN pip install "apache-airflow[all]==${AIRFLOW_VERSION}" \
+RUN pip3 install "apache-airflow[all]==${AIRFLOW_VERSION}" \
+                boto3 \
+                pandas \
+                psycopg2 \
+                py-postgresql \
+                numpy \
+                matplotlib \
+                scikit-learn \
                 google-cloud-bigquery \
                 google-cloud-storage \
                 google-cloud-pubsub \
-                boto3 \
-                pandas \
-                numpy \
-                matplotlib \
-                scikit-learn==0.20 \
-                tensorflow \
-                psycopg2
+                tensorflow
 
-# Installing google cloud sdk
-COPY google-cloud-sdk-240.0.0-linux-x86_64.tar.gz /tmp
-RUN mkdir -p /usr/local/gcloud \
-  && tar -C /usr/local/gcloud -xf /tmp/google-cloud-sdk-240.0.0-linux-x86_64.tar.gz \
-  && /usr/local/gcloud/google-cloud-sdk/install.sh \
-  && rm /tmp/google-cloud-sdk-240.0.0-linux-x86_64.tar.gz \
-  && gcloud components update --quiet
+RUN ln -sf $(which pip3) /usr/bin/pip \
+    && ln -sf $(which python3) /usr/bin/python
 
+COPY entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 ENTRYPOINT [ "/entrypoint.sh" ]
 CMD ["/entrypoint.sh", "webserver"]
