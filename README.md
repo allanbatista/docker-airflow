@@ -7,6 +7,8 @@ Docker Image for Apahce Airflow to be utilized on production.
     /opt/airflow/home airflow home
     /opt/airflow/dags airflow dags
     /opt/airflow/logs airflow logs
+    /opt/airflow/plugins airflow plugins
+    /opt/airflow/keys store your keys here
 
 ## Ports
 

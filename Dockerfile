@@ -1,4 +1,4 @@
-FROM python:3.7-slim
+FROM python:2.7-slim
 
 LABEL author="Allan Batista <allan@allanbatista.com.br>"
 
@@ -11,8 +11,10 @@ ENV TERM linux
 # airflow
 ENV AIRFLOW=/opt/airflow
 ENV AIRFLOW_HOME=$AIRFLOW/home
-ENV AIRFLOW_DAGS=$AIRFLOW/dags
-ENV AIRFLOW_LOGS=$AIRFLOW/logs
+ENV AIRFLOW__CORE__DAGS_FOLDER=$AIRFLOW/dags
+ENV AIRFLOW__CORE__PLUGINS_FOLDER=$AIRFLOW/plugins
+ENV AIRFLOW__CORE__BASE_LOG_FOLDER=$AIRFLOW/logs
+ENV AIRFLOW_KEYS=$AIRFLOW/keys
 ENV AIRFLOW_VERSION=1.10.3
 ENV AIRFLOW_GPL_UNIDECODE=yes
 
@@ -23,10 +25,18 @@ ENV LC_ALL en_US.UTF-8
 ENV LC_CTYPE en_US.UTF-8
 ENV LC_MESSAGES en_US.UTF-8
 
+# pip install extensions
+ENV PYTHON_PACKAGES=
+
+# google cloud sdk
+ENV PATH=$PATH:/usr/local/gcloud/google-cloud-sdk/bin
+
 # base
 RUN mkdir -p $AIRFLOW_HOME && \
-    mkdir -p $AIRFLOW_DAGS && \
-    mkdir -p $AIRFLOW_LOGS
+    mkdir -p $AIRFLOW_KEYS && \
+    mkdir -p $AIRFLOW__CORE__DAGS_FOLDER && \
+    mkdir -p $AIRFLOW__CORE__BASE_LOG_FOLDER && \
+    mkdir -p AIRFLOW__CORE__PLUGINS_FOLDER    
 ADD airflow/home /opt/airflow/home
 COPY entrypoint.sh /entrypoint.sh
 WORKDIR /opt/airflow
@@ -60,9 +70,18 @@ RUN pip install "apache-airflow[all]==${AIRFLOW_VERSION}" \
                 pandas \
                 numpy \
                 matplotlib \
-                sklearn \
-                tensorflow
+                sklearn==0.20 \
+                tensorflow \
+                psycopg2
+
+# Installing google cloud sdk
+COPY google-cloud-sdk-240.0.0-linux-x86_64.tar.gz /tmp
+RUN mkdir -p /usr/local/gcloud \
+  && tar -C /usr/local/gcloud -xf /tmp/google-cloud-sdk-240.0.0-linux-x86_64.tar.gz \
+  && /usr/local/gcloud/google-cloud-sdk/install.sh \
+  && rm /tmp/google-cloud-sdk-240.0.0-linux-x86_64.tar.gz \
+  && gcloud components update --quiet
 
 RUN chmod +x /entrypoint.sh
 ENTRYPOINT [ "/entrypoint.sh" ]
-CMD ["webserver"]
+CMD ["/entrypoint.sh", "webserver"]
