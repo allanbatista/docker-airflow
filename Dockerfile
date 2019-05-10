@@ -70,7 +70,7 @@ RUN pip install "apache-airflow[all]==${AIRFLOW_VERSION}" \
                 pandas \
                 numpy \
                 matplotlib \
-                sklearn==0.20 \
+                scikit-learn==0.20 \
                 tensorflow \
                 psycopg2
 
