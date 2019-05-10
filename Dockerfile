@@ -1,8 +1,10 @@
-FROM python:2.7-slim
+FROM ubuntu:18.04
 
 LABEL author="Allan Batista <allan@allanbatista.com.br>"
 
 EXPOSE 8080 5555 8793
+
+SHELL ["/bin/bash", "-c"]
 
 # no interaction
 ENV DEBIAN_FRONTEND noninteractive
@@ -30,6 +32,7 @@ ENV PYTHON_PACKAGES=
 
 # google cloud sdk
 ENV PATH=$PATH:/usr/local/gcloud/google-cloud-sdk/bin
+ENV CLOUDSDK_PYTHON="python2.7"
 
 # base
 RUN mkdir -p $AIRFLOW_HOME && \
@@ -57,7 +60,12 @@ RUN apt-get update && \
     libssl-dev \
     libffi-dev \
     libpq-dev \
-    git && \
+    git \
+    python python-pip python-dev \
+    python3 python3-pip python3-dev && \
+    echo "alias python=python3" >> ~/.bashrc && \
+    echo "alias pip=pip3" >> ~/.bashrc && \
+    source ~/.bashrc && \
     apt-get clean
 
 RUN sed -i -e 's/# en_US.UTF-8 UTF-8/en_US.UTF-8 UTF-8/' /etc/locale.gen && locale-gen
