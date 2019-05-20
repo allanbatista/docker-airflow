@@ -18,9 +18,9 @@ ENV AIRFLOW__CORE__DAGS_FOLDER=$AIRFLOW/dags
 ENV AIRFLOW__CORE__PLUGINS_FOLDER=$AIRFLOW/plugins
 ENV AIRFLOW__CORE__BASE_LOG_FOLDER=$AIRFLOW/logs
 ENV AIRFLOW_KEYS=$AIRFLOW/keys
-ENV AIRFLOW_VERSION=1.10.1
+ENV AIRFLOW_VERSION=1.10.3
 ENV AIRFLOW_GPL_UNIDECODE=yes
-ENV C_FORCE_ROOT=TRUE
+ENV C_FORCE_ROOT=true
 
 # language
 ENV LANGUAGE en_US.UTF-8
@@ -76,8 +76,11 @@ RUN echo "deb http://packages.cloud.google.com/apt $CLOUD_SDK_REPO main" | tee -
     apt-get update -y && \
     apt-get install google-cloud-sdk -y
 
-RUN pip3 install "apache-airflow[all]==${AIRFLOW_VERSION}" \
-                boto3 \
+
+RUN ln -sf $(which pip3) /usr/bin/pip \
+    && ln -sf $(which python3) /usr/bin/python
+
+RUN pip install boto3 \
                 pandas \
                 psycopg2 \
                 py-postgresql \
@@ -89,8 +92,9 @@ RUN pip3 install "apache-airflow[all]==${AIRFLOW_VERSION}" \
                 google-cloud-pubsub \
                 tensorflow
 
-RUN ln -sf $(which pip3) /usr/bin/pip \
-    && ln -sf $(which python3) /usr/bin/python
+ENV AIRFLOW_COMPONENTS=all_dbs,async,celery,cloudant,crypto,gcp_api,google_auth,hdfs,hive,jdbc,mysql,oracle,password,postgres,rabbitmq,redis,s3,samba,slack,ssh
+
+RUN pip3 install "apache-airflow[${AIRFLOW_COMPONENTS}]==${AIRFLOW_VERSION}"
 
 COPY entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh

@@ -41,3 +41,4 @@ Docker Image for Apahce Airflow to be utilized on production.
     docker run --rm -it -p 8793:8793 allanbatista/airflow worker
     docker run --rm -it -p 5555:5555 allanbatista/airflow flower
     docker run --rm -it -e GCS_DAGS=gs://bucket/path/dags allanbatista/airflow sync
+
