@@ -83,6 +83,7 @@ RUN ln -sf $(which pip3) /usr/bin/pip \
 RUN pip install boto3 \
                 pandas \
                 psycopg2 \
+                psycopg2-binary \
                 py-postgresql \
                 numpy \
                 matplotlib \
@@ -90,11 +91,18 @@ RUN pip install boto3 \
                 google-cloud-bigquery \
                 google-cloud-storage \
                 google-cloud-pubsub \
-                tensorflow
+                tensorflow \
+                sasl \
+                thrift_sasl
 
 ENV AIRFLOW_COMPONENTS=all_dbs,async,celery,cloudant,crypto,gcp_api,google_auth,hdfs,hive,jdbc,mysql,oracle,password,postgres,rabbitmq,redis,s3,samba,slack,ssh
 
 RUN pip3 install "apache-airflow[${AIRFLOW_COMPONENTS}]==${AIRFLOW_VERSION}"
+
+RUN mkdir -p /tmp/airflow_custom
+ADD airflow/airflow_custom /tmp/airflow_custom
+RUN python setup.py sdist bdist_wheel && python -c "import airflow_custom.net; print(airflow_custom.net.get_ip())"
+ENV AIRFLOW__CORE__HOSTNAME_CALLABLE=airflow_custom.net:get_ip
 
 COPY entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
