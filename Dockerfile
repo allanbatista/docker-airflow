@@ -93,16 +93,17 @@ RUN pip install boto3 \
                 google-cloud-pubsub \
                 tensorflow \
                 sasl \
-                thrift_sasl
+                thrift_sasl \
+                setuptools \
+                wheel
 
-ENV AIRFLOW_COMPONENTS=all_dbs,async,celery,cloudant,crypto,gcp_api,google_auth,hdfs,hive,jdbc,mysql,oracle,password,postgres,rabbitmq,redis,s3,samba,slack,ssh
+ENV AIRFLOW_COMPONENTS=all_dbs,async,celery,cloudant,crypto,gcp_api,google_auth,hdfs,hive,jdbc,mysql,oracle,password,postgres,rabbitmq,redis,s3,samba,slack,ssh,github_enterprise
 
 RUN pip3 install "apache-airflow[${AIRFLOW_COMPONENTS}]==${AIRFLOW_VERSION}"
 
-RUN mkdir -p /tmp/airflow_custom
-ADD airflow/airflow_custom /tmp/airflow_custom
-RUN python setup.py sdist bdist_wheel && python -c "import airflow_custom.net; print(airflow_custom.net.get_ip())"
-ENV AIRFLOW__CORE__HOSTNAME_CALLABLE=airflow_custom.net:get_ip
+RUN mkdir -p /airflow_custom
+ADD airflow/airflow_custom /airflow_custom
+RUN python -m pip install -e /airflow_custom
 
 COPY entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh

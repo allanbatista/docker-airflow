@@ -18,6 +18,7 @@ Docker Image for Apahce Airflow to be utilized on production.
     -e AIRFLOW__CORE__EXECUTOR=CeleryExecutor \
     -e AIRFLOW__CORE__LOAD_EXAMPLES=False \
     -e AIRFLOW__CORE__SQL_ALCHEMY_CONN=postgresql+psycopg2://postgres:password@192.168.85.211:31641/postgres \
+    -e AIRFLOW__CORE__HOSTNAME_CALLABLE=airflow_custom.net:get_ip \
     allanbatista/airflow worker
 
 ## Dir
