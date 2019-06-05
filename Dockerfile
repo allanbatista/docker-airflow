@@ -80,6 +80,17 @@ RUN echo "deb http://packages.cloud.google.com/apt $CLOUD_SDK_REPO main" | tee -
 RUN ln -sf $(which pip3) /usr/bin/pip \
     && ln -sf $(which python3) /usr/bin/python
 
+
+## Install Airflow
+ENV AIRFLOW_COMPONENTS=all_dbs,async,celery,cloudant,crypto,gcp_api,google_auth,hdfs,hive,jdbc,mysql,oracle,password,postgres,rabbitmq,redis,s3,samba,slack,ssh,github_enterprise
+
+RUN pip3 install "apache-airflow[${AIRFLOW_COMPONENTS}]==${AIRFLOW_VERSION}"
+
+RUN mkdir -p /airflow_custom
+ADD airflow/airflow_custom /airflow_custom
+RUN python -m pip install -e /airflow_custom
+
+## Install additional packages
 RUN pip install boto3 \
                 pandas \
                 psycopg2 \
@@ -88,22 +99,17 @@ RUN pip install boto3 \
                 numpy \
                 matplotlib \
                 scikit-learn \
-                google-cloud-bigquery \
+                google-cloud-bigquery==1.11.3 \
                 google-cloud-storage \
                 google-cloud-pubsub \
                 tensorflow \
                 sasl \
                 thrift_sasl \
                 setuptools \
-                wheel
-
-ENV AIRFLOW_COMPONENTS=all_dbs,async,celery,cloudant,crypto,gcp_api,google_auth,hdfs,hive,jdbc,mysql,oracle,password,postgres,rabbitmq,redis,s3,samba,slack,ssh,github_enterprise
-
-RUN pip3 install "apache-airflow[${AIRFLOW_COMPONENTS}]==${AIRFLOW_VERSION}"
-
-RUN mkdir -p /airflow_custom
-ADD airflow/airflow_custom /airflow_custom
-RUN python -m pip install -e /airflow_custom
+                wheel \
+                pika \
+                pymongo \
+                -U
 
 COPY entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
