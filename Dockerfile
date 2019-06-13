@@ -31,6 +31,7 @@ ENV LC_MESSAGES en_US.UTF-8
 
 # pip install extensions
 ENV PYTHON_PACKAGES=
+ENV PYTHONDONTWRITEBYTECODE=true
 
 # google cloud sdk
 ENV PATH=$PATH:/usr/local/gcloud/google-cloud-sdk/bin
@@ -44,7 +45,7 @@ RUN mkdir -p $AIRFLOW_HOME && \
     mkdir -p $AIRFLOW_KEYS && \
     mkdir -p $AIRFLOW__CORE__DAGS_FOLDER && \
     mkdir -p $AIRFLOW__CORE__BASE_LOG_FOLDER && \
-    mkdir -p AIRFLOW__CORE__PLUGINS_FOLDER    
+    mkdir -p $AIRFLOW__CORE__PLUGINS_FOLDER
 ADD airflow/home /opt/airflow/home
 WORKDIR /opt/airflow
 
