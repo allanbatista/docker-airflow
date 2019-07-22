@@ -110,6 +110,7 @@ RUN pip install boto3 \
                 wheel \
                 pika \
                 pymongo \
+                unidecode \
                 -U
 
 COPY entrypoint.sh /entrypoint.sh
