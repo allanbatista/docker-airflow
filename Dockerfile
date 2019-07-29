@@ -40,6 +40,10 @@ ENV GOOGLE_APPLICATION_CREDENTIALS_JSON=
 ENV GOOGLE_APPLICATION_ACCOUNT=
 ENV CLOUD_SDK_REPO=cloud-sdk-bionic
 
+# oracle driver
+ENV ORACLE_HOME=/opt/cx_oracle
+ENV LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$ORACLE_HOME
+
 # base
 RUN mkdir -p $AIRFLOW_HOME && \
     mkdir -p $AIRFLOW_KEYS && \
@@ -47,6 +51,7 @@ RUN mkdir -p $AIRFLOW_HOME && \
     mkdir -p $AIRFLOW__CORE__BASE_LOG_FOLDER && \
     mkdir -p $AIRFLOW__CORE__PLUGINS_FOLDER
 ADD airflow/home /opt/airflow/home
+ADD instantclient-basic-linux.x64-19.3.0.0.0dbru.zip /tmp/
 WORKDIR /opt/airflow
 
 RUN apt-get update -y \
@@ -69,6 +74,7 @@ RUN apt-get update -y \
                         libssl-dev \
                         libffi-dev \
                         libpq-dev \
+                        libaio1 \
     && sed -i -e 's/# en_US.UTF-8 UTF-8/en_US.UTF-8 UTF-8/' /etc/locale.gen && locale-gen \
     && apt-get clean
 
@@ -81,6 +87,11 @@ RUN echo "deb http://packages.cloud.google.com/apt $CLOUD_SDK_REPO main" | tee -
 RUN ln -sf $(which pip3) /usr/bin/pip \
     && ln -sf $(which python3) /usr/bin/python
 
+## install oracle driver
+RUN cd /tmp/ && \
+    unzip instantclient-basic-linux.x64-19.3.0.0.0dbru.zip && \
+    mv instantclient_19_3 $ORACLE_HOME && \
+    rm instantclient-basic-linux.x64-19.3.0.0.0dbru.zip
 
 ## Install Airflow
 ENV AIRFLOW_COMPONENTS=all_dbs,async,celery,cloudant,crypto,gcp_api,google_auth,hdfs,hive,jdbc,mysql,oracle,password,postgres,rabbitmq,redis,s3,samba,slack,ssh,github_enterprise
@@ -111,7 +122,9 @@ RUN pip install boto3 \
                 pika \
                 pymongo \
                 unidecode \
+                cx_Oracle \
                 -U
+
 
 COPY entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
