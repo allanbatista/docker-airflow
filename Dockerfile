@@ -96,7 +96,7 @@ RUN cd /tmp/ && \
 ## Install Airflow
 ENV AIRFLOW_COMPONENTS=all_dbs,async,celery,cloudant,crypto,gcp_api,google_auth,hdfs,hive,jdbc,mysql,oracle,password,postgres,rabbitmq,redis,s3,samba,slack,ssh,github_enterprise
 
-RUN pip3 install "apache-airflow[${AIRFLOW_COMPONENTS}]==${AIRFLOW_VERSION}"
+RUN pip install "apache-airflow[${AIRFLOW_COMPONENTS}]==${AIRFLOW_VERSION}" --no-cache-dir
 
 RUN mkdir -p /airflow_custom
 ADD airflow/airflow_custom /airflow_custom
@@ -123,8 +123,11 @@ RUN pip install boto3 \
                 pymongo \
                 unidecode \
                 cx_Oracle \
-                -U
+                nltk \
+                -U --no-cache-dir
 
+# remove apt cache
+RUN apt-get clean --dry-run
 
 COPY entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
