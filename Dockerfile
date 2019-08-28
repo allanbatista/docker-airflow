@@ -18,7 +18,8 @@ ENV AIRFLOW__CORE__DAGS_FOLDER=$AIRFLOW/dags
 ENV AIRFLOW__CORE__PLUGINS_FOLDER=$AIRFLOW/plugins
 ENV AIRFLOW__CORE__BASE_LOG_FOLDER=$AIRFLOW/logs
 ENV AIRFLOW_KEYS=$AIRFLOW/keys
-ENV AIRFLOW_VERSION=1.10.3
+ENV AIRFLOW_VERSION=1.10.4
+ENV AIRFLOW_COMPONENTS=all_dbs,async,celery,cloudant,crypto,gcp_api,google_auth,hdfs,hive,jdbc,mysql,oracle,password,postgres,rabbitmq,redis,s3,samba,slack,ssh,github_enterprise
 ENV AIRFLOW_GPL_UNIDECODE=yes
 ENV C_FORCE_ROOT=true
 
@@ -94,8 +95,6 @@ RUN cd /tmp/ && \
     rm instantclient-basic-linux.x64-19.3.0.0.0dbru.zip
 
 ## Install Airflow
-ENV AIRFLOW_COMPONENTS=all_dbs,async,celery,cloudant,crypto,gcp_api,google_auth,hdfs,hive,jdbc,mysql,oracle,password,postgres,rabbitmq,redis,s3,samba,slack,ssh,github_enterprise
-
 RUN pip install "apache-airflow[${AIRFLOW_COMPONENTS}]==${AIRFLOW_VERSION}" --no-cache-dir
 
 RUN mkdir -p /airflow_custom
@@ -125,6 +124,8 @@ RUN pip install boto3 \
                 cx_Oracle \
                 nltk \
                 -U --no-cache-dir
+
+RUN python -c "import nltk; nltk.download('rslp')"
 
 # remove apt cache
 RUN apt-get clean --dry-run
