@@ -76,6 +76,8 @@ RUN apt-get update -y \
                         libffi-dev \
                         libpq-dev \
                         libaio1 \
+                        openjdk-8-jre \
+                        openjdk-8-jdk \
     && sed -i -e 's/# en_US.UTF-8 UTF-8/en_US.UTF-8 UTF-8/' /etc/locale.gen && locale-gen \
     && apt-get clean
 
