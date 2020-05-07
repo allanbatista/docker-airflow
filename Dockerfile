@@ -127,6 +127,7 @@ RUN pip install boto3 \
                 nltk \
                 git+https://github.com/facebookresearch/fastText \
                 werkzeug==0.16.0 \
+                SQLAlchemy==1.3.15 \
                 -U --no-cache-dir
 
 RUN python -c "import nltk; nltk.download('rslp')"
