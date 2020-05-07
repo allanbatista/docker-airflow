@@ -125,6 +125,7 @@ RUN pip install boto3 \
                 unidecode \
                 cx_Oracle \
                 nltk \
+                git+https://github.com/facebookresearch/fastText \
                 -U --no-cache-dir
 
 RUN python -c "import nltk; nltk.download('rslp')"
