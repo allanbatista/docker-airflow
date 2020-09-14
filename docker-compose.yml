@@ -1,0 +1,49 @@
+version: "3"
+
+volumes: 
+    postgres_volume: {}
+    rabbitmq_volume: {}
+    airflow_dags_volume: {}
+
+services: 
+    postgres:
+        environment:
+            - POSTGRES_PASSWORD=pg_password
+            - POSTGRES_USER=airflow
+            - POSTGRES_DB=airflow
+        volumes:
+            - postgres_volume:/var/lib/postgresql/data
+        image: postgres
+        container_name: postgres
+
+    rabbitmq:
+        volumes:
+            - rabbitmq_volume:/var/lib/rabbitmq/mnesia/rabbit@my-rabbit
+        image: 'rabbitmq:3-management'
+        hostname: my-rabbit
+
+    image:
+        image: allanbatista/airflow:1.10.12
+        build: ./
+
+    webserver:
+        image: allanbatista/airflow:1.10.12
+        command: webserver
+        depends_on: 
+            - image
+            - postgres
+            - rabbitmq
+
+    webserver:
+        image: allanbatista/airflow:1.10.12
+        command: webserver
+        depends_on: 
+            - image
+            - postgres
+            - rabbitmq
+
+    
+
+
+    
+
